@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soldering Basics — ECE 1220</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #161922;
+    --panel-2: #1c2030;
+    --ink: #e8e6df;
+    --ink-dim: #a9a59a;
+    --line: #2a2f3d;
+    --accent: #ff6a3d;        /* solder-iron orange */
+    --accent-2: #ffd166;       /* flux yellow */
+    --good: #6ee7a7;
+    --bad: #ff7a90;
+    --copper: #c97e4a;
+    --solder: #b9bcc4;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 400;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background-image:
+      radial-gradient(1200px 600px at 85% -10%, rgba(255,106,61,0.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(255,209,102,0.08), transparent 55%),
+      linear-gradient(var(--bg), var(--bg));
+    background-attachment: fixed;
+  }
+
+  .grain::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none;
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.6'/></svg>");
+  }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 56px 32px 80px;
+  }
+
+  /* ------- Header ------- */
+  header.top {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 24px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 28px;
+    margin-bottom: 36px;
+  }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 800;
+    font-size: clamp(44px, 6.5vw, 88px);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin: 10px 0 0;
+    color: var(--ink);
+  }
+  h1 em {
+    font-style: italic;
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    color: var(--accent-2);
+  }
+  .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: right;
+    line-height: 1.8;
+  }
+  .meta b { color: var(--ink); font-weight: 600; }
+
+  /* ------- Layout ------- */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 20px;
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 24px 26px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card.tall { padding: 28px 30px; }
+
+  .card .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card .label .num {
+    color: var(--accent);
+  }
+
+  h2 {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+    margin: 0 0 12px;
+    color: var(--ink);
+  }
+
+  p { margin: 0 0 10px; color: var(--ink); font-size: 15.5px; }
+  p.dim { color: var(--ink-dim); font-size: 14.5px; }
+
+  /* spans */
+  .col-12 { grid-column: span 12; }
+  .col-8  { grid-column: span 8; }
+  .col-7  { grid-column: span 7; }
+  .col-6  { grid-column: span 6; }
+  .col-5  { grid-column: span 5; }
+  .col-4  { grid-column: span 4; }
+  .col-3  { grid-column: span 3; }
+
+  @media (max-width: 880px) {
+    .col-8, .col-7, .col-6, .col-5, .col-4, .col-3 { grid-column: span 12; }
+    .wrap { padding: 36px 20px 60px; }
+    header.top { grid-template-columns: 1fr; }
+    .meta { text-align: left; }
+  }
+
+  /* ------- Joint anatomy SVG card ------- */
+  .joint-card {
+    background:
+      radial-gradient(600px 200px at 80% 0%, rgba(255,106,61,0.08), transparent 60%),
+      var(--panel);
+  }
+  .joint-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-top: 6px;
+  }
+  .joint-box {
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+    padding: 14px;
+    background: var(--panel-2);
+  }
+  .joint-box.good { border-color: rgba(110,231,167,0.35); }
+  .joint-box.bad  { border-color: rgba(255,122,144,0.35); }
+  .joint-box h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin: 0 0 8px;
+  }
+  .joint-box.good h3 { color: var(--good); }
+  .joint-box.bad  h3 { color: var(--bad); }
+  .joint-box p {
+    font-size: 13.5px;
+    color: var(--ink-dim);
+    margin: 0;
+  }
+  .joint-box svg { display: block; width: 100%; height: 110px; }
+
+  /* ------- Steps strip ------- */
+  .steps {
+    counter-reset: step;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    margin-top: 8px;
+  }
+  .step {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 14px;
+    position: relative;
+  }
+  .step::before {
+    counter-increment: step;
+    content: counter(step, decimal-leading-zero);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+  }
+  .step h4 {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 700;
+    font-size: 14.5px;
+    margin: 6px 0 6px;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+  .step p {
+    font-size: 13px;
+    color: var(--ink-dim);
+    margin: 0;
+    line-height: 1.45;
+  }
+  @media (max-width: 880px) {
+    .steps { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* Troubleshooting icon */
+  .step .icon {
+    display: block;
+    width: 100%;
+    height: 56px;
+    margin: 4px 0 8px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  .step .icon svg { display: block; width: 100%; height: 100%; }
+
+  /* ------- Do / Don't ------- */
+  .dodont {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  @media (max-width: 880px) { .dodont { grid-template-columns: 1fr; } }
+
+  .list {
+    list-style: none;
+    padding: 0;
+    margin: 6px 0 0;
+  }
+  .list li {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 12px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 14.5px;
+    color: var(--ink);
+  }
+  .list li:last-child { border-bottom: 0; }
+  .list .mark {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .do .mark    { color: var(--good); }
+  .dont .mark  { color: var(--bad); }
+
+  /* ------- Safety bar ------- */
+  .safety {
+    background: linear-gradient(180deg, #1a1d27 0%, #161922 100%);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+  }
+  .safety .row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-top: 10px;
+  }
+  .safety .row .item {
+    border-left: 1px solid var(--line);
+    padding-left: 14px;
+  }
+  .safety .row .item:first-child { border-left: none; padding-left: 0; }
+  .safety h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    margin: 0 0 6px;
+  }
+  .safety p { font-size: 13.5px; color: var(--ink-dim); margin: 0; }
+  @media (max-width: 880px) {
+    .safety .row { grid-template-columns: 1fr !important; }
+    .safety .row .item { border-left: none; padding-left: 0; }
+  }
+
+  /* ------- Cleanup card ------- */
+  .cleanup {
+    background:
+      linear-gradient(135deg, rgba(255,209,102,0.08), rgba(255,106,61,0.05)),
+      var(--panel);
+  }
+  .cleanup ol {
+    margin: 6px 0 0;
+    padding-left: 18px;
+    color: var(--ink);
+  }
+  .cleanup ol li {
+    padding: 4px 0;
+    font-size: 14.5px;
+  }
+  .cleanup ol li::marker {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* ------- Footer ------- */
+  footer {
+    margin-top: 40px;
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* ------- Reveal animation ------- */
+  .card, .step {
+    animation: rise 0.6s ease both;
+  }
+  .card { animation-delay: calc(var(--i, 0) * 60ms); }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body class="grain">
+  <div class="wrap">
+
+    <header class="top">
+      <div>
+        <div class="eyebrow">ECE 1220 · Mini-Soldering Course</div>
+        <h1>Soldering<br><em>basics &amp; etiquette.</em></h1>
+      </div>
+      <div class="meta">
+        <div>Location · <b>U762</b></div>
+        <div>Duration · <b>30–45 min</b></div>
+        <div>Group size · <b>1–2 students</b></div>
+      </div>
+    </header>
+
+    <div class="grid">
+
+      <!-- Iron care -->
+      <section class="card col-7" style="--i:0">
+        <div class="label"><span>Iron care &amp; tinning</span><span class="num">01</span></div>
+        <h2>Keep the tip wet, shiny, and silver.</h2>
+        <p class="dim">A clean, tinned tip transfers heat efficiently. A dry, oxidized tip won't — and you'll fight every joint until it's restored.</p>
+        <div class="steps">
+          <div class="step"><h4>Heat up</h4><p>Let the iron reach temperature (~350 °C / 660 °F for leaded solder).</p></div>
+          <div class="step"><h4>Wipe</h4><p>Clean on a damp sponge or brass wool — brass preferred, it doesn't shock the tip.</p></div>
+          <div class="step"><h4>Tin</h4><p>Melt a small bead of solder onto the tip until it coats silver.</p></div>
+          <div class="step"><h4>Re-tin often</h4><p>Between joints and before setting the iron back in its stand.</p></div>
+          <div class="step"><h4>Power off tinned</h4><p>Always leave a fresh layer of solder on the tip when you finish.</p></div>
+        </div>
+      </section>
+
+      <!-- Joint anatomy -->
+      <section class="card joint-card col-5" style="--i:1">
+        <div class="label"><span>Joint anatomy</span><span class="num">02</span></div>
+        <h2>What a good joint looks like.</h2>
+        <div class="joint-row">
+
+          <!-- GOOD JOINT -->
+          <div class="joint-box good">
+            <h3>✓ Good — concave fillet</h3>
+            <svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+              <!-- PCB -->
+              <rect x="0" y="78" width="200" height="14" fill="#23472f" />
+              <rect x="0" y="78" width="200" height="2" fill="#2f6b44" />
+              <!-- Pad -->
+              <ellipse cx="100" cy="78" rx="34" ry="6" fill="#c97e4a" />
+              <!-- Lead -->
+              <rect x="96" y="20" width="8" height="60" fill="#9aa0aa" />
+              <rect x="96" y="20" width="8" height="60" fill="url(#leadShade)" opacity="0.5"/>
+              <!-- Solder fillet (concave volcano) -->
+              <path d="M 70 78 Q 100 38 130 78 Z" fill="#b9bcc4" />
+              <path d="M 70 78 Q 100 38 130 78 Z" fill="url(#solderHi)" opacity="0.7"/>
+              <!-- Highlight -->
+              <path d="M 84 70 Q 100 50 116 70" stroke="#ffffff" stroke-width="1.2" fill="none" opacity="0.5"/>
+              <defs>
+                <linearGradient id="solderHi" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0" stop-color="#ffffff" stop-opacity="0.4"/>
+                  <stop offset="1" stop-color="#000000" stop-opacity="0.1"/>
+                </linearGradient>
+                <linearGradient id="leadShade" x1="0" x2="1" y1="0" y2="0">
+                  <stop offset="0" stop-color="#000" stop-opacity="0.3"/>
+                  <stop offset="1" stop-color="#fff" stop-opacity="0.2"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <p>Smooth, shiny, concave slope from lead to pad. Solder has wetted both surfaces.</p>
+          </div>
+
+          <!-- BAD JOINT -->
+          <div class="joint-box bad">
+            <h3>✗ Cold / dry joint</h3>
+            <svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+              <rect x="0" y="78" width="200" height="14" fill="#23472f" />
+              <rect x="0" y="78" width="200" height="2" fill="#2f6b44" />
+              <ellipse cx="100" cy="78" rx="34" ry="6" fill="#c97e4a" />
+              <rect x="96" y="20" width="8" height="60" fill="#9aa0aa" />
+              <!-- Lumpy convex blob, dull -->
+              <path d="M 76 78 Q 88 58 100 60 Q 112 62 124 78 Z" fill="#7e8089" />
+              <circle cx="92" cy="68" r="2.5" fill="#5b5d65"/>
+              <circle cx="108" cy="72" r="1.8" fill="#5b5d65"/>
+              <!-- Gap at lead -->
+              <rect x="95" y="60" width="10" height="3" fill="#0f1115"/>
+            </svg>
+            <p>Dull, lumpy, or convex blob. Often gaps at the lead — solder didn't wet properly.</p>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Through-hole technique -->
+      <section class="card col-12" style="--i:2">
+        <div class="label"><span>Through-hole technique</span><span class="num">03</span></div>
+        <h2>Heat the joint, not the solder.</h2>
+        <p class="dim" style="margin-top:-4px;margin-bottom:14px;">Note: in normal through-hole soldering we bend the leads slightly to keep the component in place, but we don't do this for header pins — the leads should stay straight.</p>
+        <div class="steps" style="grid-template-columns: repeat(4, 1fr);">
+          <div class="step"><h4>Seat the part</h4><p>Insert the header pins through the holes. Keep the strip flat against the board — don't bend the leads.</p></div>
+          <div class="step"><h4>Heat both</h4><p>Touch the iron to the pad <b>and</b> the lead at once. Hold ~2 seconds.</p></div>
+          <div class="step"><h4>Feed solder</h4><p>Apply solder to the joint — not the iron tip. It should flow in.</p></div>
+          <div class="step"><h4>Pull solder, then iron</h4><p>Remove solder first, leave the iron a half-second longer, then lift.</p></div>
+        </div>
+      </section>
+
+      <!-- Do / Don't -->
+      <section class="card col-7" style="--i:3">
+        <div class="label"><span>Dos &amp; Don'ts</span><span class="num">04</span></div>
+        <h2>Habits that separate clean joints from rework.</h2>
+        <div class="dodont">
+          <ul class="list do">
+            <li><span class="mark">DO</span><span>Park the iron in its stand between joints — never on the bench.</span></li>
+            <li><span class="mark">DO</span><span>Tin a fresh tip before the first joint of every session.</span></li>
+            <li><span class="mark">DO</span><span>Let joints cool naturally; don't blow on them.</span></li>
+            <li><span class="mark">DO</span><span>Use just enough solder to form a clean fillet — more isn't better.</span></li>
+            <li><span class="mark">DO</span><span>Keep the iron tip clean: wipe before every joint.</span></li>
+          </ul>
+          <ul class="list dont">
+            <li><span class="mark">DON'T</span><span>Touch the metal shaft, or set the iron on anything but its stand.</span></li>
+            <li><span class="mark">DON'T</span><span>Melt solder onto the tip and carry it to the joint — it won't wet.</span></li>
+            <li><span class="mark">DON'T</span><span>Hold the iron on the joint for more than ~3 seconds — pads lift.</span></li>
+            <li><span class="mark">DON'T</span><span>File or sand the tip when it gets dirty — re-tin instead.</span></li>
+            <li><span class="mark">DON'T</span><span>Eat, drink, or rub your eyes at the bench.</span></li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Cleanup -->
+      <section class="card cleanup col-5" style="--i:4">
+        <div class="label"><span>Cleanup</span><span class="num">05</span></div>
+        <h2>Finish the job.</h2>
+        <ol>
+          <li>Wait for the joint to fully cool and solidify before touching.</li>
+          <li>Clean flux residue from the PCB with isopropyl alcohol (IPA) and cotton swabs.</li>
+          <li>Re-tin the iron tip, then power down and return it to its stand.</li>
+          <li><b>Wash your hands</b> thoroughly with soap and water — we are using <b>leaded solder</b>, so do this before eating, drinking, or touching your face.</li>
+        </ol>
+      </section>
+
+      <!-- Safety bar -->
+      <section class="card safety col-12" style="--i:5">
+        <div class="label"><span>Safety</span><span class="num">06</span></div>
+        <h2>The non-negotiables.</h2>
+        <div class="row" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="item">
+            <h3>Fumes</h3>
+            <p>A fume evacuation fan will be provided at your workstation — keep it positioned close enough to the joint so the smoke pulls away from your face.</p>
+          </div>
+          <div class="item">
+            <h3>Burns</h3>
+            <p>The iron tip and shaft reach ~350 °C and stay dangerously hot for a long time after powering down. Treat them as hot until they're cool to the touch — and don't test that with your fingers.</p>
+          </div>
+          <div class="item">
+            <h3>Hands</h3>
+            <p>Thoroughly wash hands with soap and water after the session — we're using leaded solder.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Troubleshooting -->
+      <section class="card col-12" style="--i:6">
+        <div class="label"><span>Common mistakes &amp; fixes</span><span class="num">07</span></div>
+        <h2>If something looks off, it probably is.</h2>
+        <div class="steps" style="grid-template-columns: repeat(4, 1fr);">
+          <div class="step">
+            <div class="icon">
+              <svg viewBox="0 0 200 56" xmlns="http://www.w3.org/2000/svg">
+                <rect x="0" y="42" width="200" height="14" fill="#23472f"/>
+                <ellipse cx="100" cy="42" rx="30" ry="5" fill="#c97e4a"/>
+                <rect x="96" y="6" width="8" height="36" fill="#9aa0aa"/>
+                <!-- dull, lumpy convex blob -->
+                <path d="M 76 42 Q 86 26 100 28 Q 114 30 124 42 Z" fill="#7e8089"/>
+                <circle cx="92" cy="34" r="2" fill="#5b5d65"/>
+                <circle cx="110" cy="36" r="1.6" fill="#5b5d65"/>
+              </svg>
+            </div>
+            <h4>Dull, gray joint</h4>
+            <p>Cold joint — part moved while cooling, or iron wasn't hot enough. Reheat until it flows shiny.</p>
+          </div>
+          <div class="step">
+            <div class="icon">
+              <svg viewBox="0 0 200 56" xmlns="http://www.w3.org/2000/svg">
+                <rect x="0" y="42" width="200" height="14" fill="#23472f"/>
+                <ellipse cx="100" cy="42" rx="30" ry="5" fill="#c97e4a"/>
+                <rect x="96" y="6" width="8" height="36" fill="#9aa0aa"/>
+                <!-- ball of solder beaded up, not wetted -->
+                <circle cx="118" cy="36" r="7" fill="#b9bcc4"/>
+                <circle cx="116" cy="34" r="2" fill="#ffffff" opacity="0.5"/>
+                <!-- pad showing bare -->
+                <rect x="74" y="38" width="22" height="3" fill="#0f1115" opacity="0.3"/>
+              </svg>
+            </div>
+            <h4>Solder beads up</h4>
+            <p>Surfaces aren't hot or clean. Re-tin the tip, heat both pad and lead longer.</p>
+          </div>
+          <div class="step">
+            <div class="icon">
+              <svg viewBox="0 0 200 56" xmlns="http://www.w3.org/2000/svg">
+                <rect x="0" y="42" width="200" height="14" fill="#23472f"/>
+                <!-- pad lifted: copper pad peeling up off the green substrate -->
+                <path d="M 70 42 L 130 42 L 132 30 L 72 32 Z" fill="#c97e4a"/>
+                <path d="M 70 42 L 72 32" stroke="#8b5430" stroke-width="1"/>
+                <!-- exposed dark area where pad used to be -->
+                <rect x="70" y="42" width="60" height="2" fill="#0f1115"/>
+                <!-- lead floating loose -->
+                <rect x="96" y="6" width="8" height="26" fill="#9aa0aa"/>
+              </svg>
+            </div>
+            <h4>Pad lifted</h4>
+            <p>Iron held too long. Stop, let it cool, and ask for help — don't keep heating.</p>
+          </div>
+          <div class="step">
+            <div class="icon">
+              <svg viewBox="0 0 200 56" xmlns="http://www.w3.org/2000/svg">
+                <rect x="0" y="42" width="200" height="14" fill="#23472f"/>
+                <!-- two pads -->
+                <ellipse cx="78" cy="42" rx="14" ry="4" fill="#c97e4a"/>
+                <ellipse cx="122" cy="42" rx="14" ry="4" fill="#c97e4a"/>
+                <!-- two leads -->
+                <rect x="74" y="6" width="8" height="36" fill="#9aa0aa"/>
+                <rect x="118" y="6" width="8" height="36" fill="#9aa0aa"/>
+                <!-- solder bridge between them -->
+                <path d="M 64 42 Q 100 18 136 42 Z" fill="#b9bcc4"/>
+                <path d="M 70 38 Q 100 24 130 38" stroke="#ffffff" stroke-width="1" fill="none" opacity="0.4"/>
+              </svg>
+            </div>
+            <h4>Bridge between pads</h4>
+            <p>Too much solder. Remove with desoldering braid, then redo the joint.</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <footer>
+      <span>ECE 1220 · Soldering Reference</span>
+      <span>Prof. E. Benoit · U762</span>
+    </footer>
+  </div>
+</body>
+</html>
